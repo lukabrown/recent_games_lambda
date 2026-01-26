@@ -29,12 +29,11 @@ def lambda_handler(event, context):
             if response.get('statusCode') is not None:
                 return response
 
-            data = {}
-            data['total_count'] = response['response']['total_count']
+            data = {"games": []}
             for i in range(response['response']['total_count']):
                 name = response['response']['games'][i]['name']
                 url = f"https://steamcdn-a.akamaihd.net/steam/apps/{response['response']['games'][i]['appid']}/capsule_616x353.jpg"
-                data[i] = {'name': name, 'url': url}
+                data["games"].append({'name': name, 'url': url})
 
             S3.put_object(
                 Bucket=BUCKET,
