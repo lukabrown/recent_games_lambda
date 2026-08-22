@@ -212,3 +212,4 @@ charset*
 idna*
 requests*
 urllib3*
+*.zip
