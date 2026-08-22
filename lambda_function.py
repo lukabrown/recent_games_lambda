@@ -32,7 +32,7 @@ def lambda_handler(event, context):
             data = {"games": []}
             for i in range(response['response']['total_count']):
                 name = response['response']['games'][i]['name']
-                url = f"https://steamcdn-a.akamaihd.net/steam/apps/{response['response']['games'][i]['appid']}/capsule_616x353.jpg"
+                url = f"https://steamcdn-a.akamaihd.net/steam/apps/{response['response']['games'][i]['appid']}/library_600x900_2x.jpg"
                 data["games"].append({'name': name, 'url': url})
 
             S3.put_object(
