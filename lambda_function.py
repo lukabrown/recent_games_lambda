@@ -49,7 +49,8 @@ def lambda_handler(event, context):
 
                 remainder = r['response']['store_items'][0]['assets']['header']
                 url = f"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{app_id}/{remainder}"
-                data["games"].append({'name': name, 'url': url})
+                store_url = f"https://store.steampowered.com/app/{app_id}"
+                data["games"].append({'name': name, 'url': url, 'storeUrl': store_url})
 
             S3.put_object(
                 Bucket=BUCKET,
