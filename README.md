@@ -1,1 +1,1 @@
-# recent_games_lambda
+Grabs recently played games from Steam and saves the data in S3 for use in the next 24 hours.
