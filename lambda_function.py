@@ -46,8 +46,11 @@ def lambda_handler(event, context):
                 }
 
                 r = send_steam_call(STEAM_STORE_URL, params={"input_json": json.dumps(payload)})
+                try:
+                    remainder = r['response']['store_items'][0]['assets']['header_2x']
+                except (KeyError):
+                    remainder = r['response']['store_items'][0]['assets']['header']
 
-                remainder = r['response']['store_items'][0]['assets']['header']
                 url = f"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{app_id}/{remainder}"
                 store_url = f"https://store.steampowered.com/app/{app_id}"
                 data["games"].append({'name': name, 'url': url, 'storeUrl': store_url})
