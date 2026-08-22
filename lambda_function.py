@@ -7,7 +7,8 @@ from datetime import date
 USER_ID = os.environ['user_id']
 API_KEY = os.environ['api_key']
 BUCKET = os.environ['bucket']
-STEAM_URL = f"http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key={API_KEY}&steamid={USER_ID}"
+STEAM_GAMES_URL = f"http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key={API_KEY}&steamid={USER_ID}&include_appinfo=true"
+STEAM_STORE_URL = "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/"
 
 S3 = boto3.client("s3")
 
@@ -24,7 +25,7 @@ def lambda_handler(event, context):
             return json.loads(response["Body"].read().decode())
         except S3.exceptions.NoSuchKey:
             print('No object found')
-            response = send_steam_call()
+            response = send_steam_call(STEAM_GAMES_URL)
 
             if response.get('statusCode') is not None:
                 return response
@@ -32,7 +33,22 @@ def lambda_handler(event, context):
             data = {"games": []}
             for i in range(response['response']['total_count']):
                 name = response['response']['games'][i]['name']
-                url = f"https://steamcdn-a.akamaihd.net/steam/apps/{response['response']['games'][i]['appid']}/library_600x900_2x.jpg"
+                app_id = response['response']['games'][i]['appid']
+                payload = {
+                    "ids": [{"appid": app_id}],
+                    "context": {
+                        "language": "english",
+                        "country_code": "US"
+                    },
+                    "data_request": {
+                        "include_assets": True
+                    }
+                }
+
+                r = send_steam_call(STEAM_STORE_URL, params={"input_json": json.dumps(payload)})
+
+                remainder = r['response']['store_items'][0]['assets']['header']
+                url = f"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{app_id}/{remainder}"
                 data["games"].append({'name': name, 'url': url})
 
             S3.put_object(
@@ -49,9 +65,9 @@ def lambda_handler(event, context):
             'body': json.dumps("Internal Server Error.")
         }
 
-def send_steam_call():
+def send_steam_call(url, params=None):
     try:
-        response = requests.get(STEAM_URL, timeout=10)
+        response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
