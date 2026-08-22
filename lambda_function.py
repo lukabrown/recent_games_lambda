@@ -75,5 +75,5 @@ def send_steam_call(url, params=None):
         print(f"Error: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps("Internal Server Error.")
+            'body': json.dumps("Internal Server Error. Steam call failed.")
         }
